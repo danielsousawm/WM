@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--primary);
+  --color-accent: #3b82f6;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-bg: var(--bg);
+  --color-card-bg: var(--card-bg);
+  --color-border: var(--border-color);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+}
+
+:root {
+  --primary: #0f172a;
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --success: #10b981;
+  --danger: #ef4444;
+}
+
+.dark {
+  --primary: #f8fafc;
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --border-color: #334155;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card {
+  @apply bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.05)];
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.stat-label {
+  @apply text-[14px] text-[var(--text-muted)] uppercase tracking-wider font-bold mb-1 whitespace-nowrap;
+}
+
+.stat-val {
+  @apply text-3xl font-bold text-[var(--text-main)] whitespace-nowrap;
+}
