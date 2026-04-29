@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email_verified == true &&
+             (request.auth.token.email == "danielsousawm@gmail.com" || 
+              request.auth.token.email == "wellington.wmsaude@gmail.com");
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidResponse(data) {
+      return data.keys().hasAll([
+        'municipality', 'technicalQuality', 'resolutivity', 
+        'deadlineCompliance', 'communication', 'overallSatisfaction', 
+        'average', 'date'
+      ]) &&
+      data.keys().size() <= 11 && // municipality, 5 scores, average, date, + suggestions, clientName, clientPhone
+      data.municipality is string && data.municipality.size() <= 100 &&
+      data.technicalQuality is int && data.technicalQuality >= 1 && data.technicalQuality <= 10 &&
+      data.resolutivity is int && data.resolutivity >= 1 && data.resolutivity <= 10 &&
+      data.deadlineCompliance is int && data.deadlineCompliance >= 1 && data.deadlineCompliance <= 10 &&
+      data.communication is int && data.communication >= 1 && data.communication <= 10 &&
+      data.overallSatisfaction is int && data.overallSatisfaction >= 1 && data.overallSatisfaction <= 10 &&
+      data.average is number && data.average >= 1 && data.average <= 10 &&
+      data.date is string && data.date.size() <= 50 &&
+      (!('suggestions' in data) || (data.suggestions is string && data.suggestions.size() <= 1000)) &&
+      (!('clientName' in data) || (data.clientName is string && data.clientName.size() <= 100)) &&
+      (!('clientPhone' in data) || (data.clientPhone is string && data.clientPhone.size() <= 20));
+    }
+
+    match /responses/{responseId} {
+      allow create: if isValidResponse(request.resource.data);
+      allow get, list: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

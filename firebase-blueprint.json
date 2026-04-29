@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "SurveyResponse": {
+      "title": "Survey Response",
+      "description": "A response submitted through the satisfaction survey.",
+      "type": "object",
+      "properties": {
+        "municipality": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientPhone": { "type": "string" },
+        "technicalQuality": { "type": "number" },
+        "resolutivity": { "type": "number" },
+        "deadlineCompliance": { "type": "number" },
+        "communication": { "type": "number" },
+        "overallSatisfaction": { "type": "number" },
+        "suggestions": { "type": "string" },
+        "average": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "municipality",
+        "technicalQuality",
+        "resolutivity",
+        "deadlineCompliance",
+        "communication",
+        "overallSatisfaction",
+        "average",
+        "date"
+      ]
+    }
+  },
+  "firestore": {
+    "/responses/{responseId}": {
+      "schema": "SurveyResponse",
+      "description": "Collection of all survey responses."
+    }
+  }
+}
