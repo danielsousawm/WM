@@ -16,7 +16,9 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/form" element={<FormPage />} />
+          <Route path="/avaliacao-nutec" element={<FormPage sector="NUTEC" />} />
+          <Route path="/avaliacao-mac" element={<FormPage sector="MAC" />} />
+          <Route path="/avaliacao-aps" element={<FormPage sector="APS" />} />
         </Routes>
       </BrowserRouter>
       </ThemeProvider>

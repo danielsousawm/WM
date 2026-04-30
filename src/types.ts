@@ -14,6 +14,7 @@ export interface SurveyResponse {
   communication: number;
   overallSatisfaction: number;
   suggestions?: string;
+  sector: string;
   average: number;
   date: string;
 }
