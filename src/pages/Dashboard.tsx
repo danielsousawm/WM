@@ -9,7 +9,7 @@ import {
   LineChart, Line, Cell, LabelList, AreaChart, Area
 } from 'recharts';
 import { 
-  Search, Calendar, Filter, XCircle, Sun, Moon,
+  Search, Calendar, Filter, XCircle,
   ArrowUp, ArrowDown, ArrowUpDown, TrendingUp, TrendingDown, AlertCircle, ThumbsUp
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -17,7 +17,6 @@ import { subscribeToResponses, calculateStats } from '../lib/storage';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { MUNICIPALITIES } from '../constants/municipalities';
-import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { SurveyResponse } from '../types';
 import { LogIn, LogOut, User as UserIcon } from 'lucide-react';
@@ -28,7 +27,6 @@ type SortConfig = {
 } | null;
 
 export default function Dashboard() {
-  const { theme, toggleTheme } = useTheme();
   const { user, loading: authLoading, signIn, logout } = useAuth();
   const [allResponses, setAllResponses] = useState<SurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -174,10 +172,7 @@ export default function Dashboard() {
   // If not authenticated or error occurred, show login/error page
   if (!authLoading && (!user || error)) {
     return (
-      <div className={cn(
-        "min-h-screen flex items-center justify-center p-6 bg-bg transition-colors duration-500",
-        theme === 'dark' ? 'dark' : ''
-      )}>
+      <div className="min-h-screen flex items-center justify-center p-6 bg-bg transition-colors duration-500">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -200,7 +195,7 @@ export default function Dashboard() {
           </p>
           
           {user && (
-            <div className="bg-slate-100 dark:bg-slate-800/50 p-3 rounded-xl border border-border flex flex-col gap-1 items-center">
+            <div className="bg-slate-100 p-3 rounded-xl border border-border flex flex-col gap-1 items-center">
               <span className="text-[10px] uppercase tracking-widest font-black text-text-muted">Logado como:</span>
               <span className="text-sm font-bold text-text-main">{user.email}</span>
             </div>
@@ -256,13 +251,6 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button 
-              onClick={toggleTheme}
-              className="p-2 text-slate-400 hover:text-white transition-colors rounded-lg bg-slate-800 border border-slate-700"
-              title="Alternar Tema"
-            >
-              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-            </button>
             <div className="h-6 w-[1px] bg-slate-800 hidden lg:block"></div>
             {user && (
               <div className="flex items-center gap-3">
@@ -426,7 +414,7 @@ export default function Dashboard() {
               <div className="flex-1 mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={theme === 'dark' ? 0.1 : 0.05} stroke={theme === 'dark' ? '#94a3b8' : '#e2e8f0'} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.05} stroke="#e2e8f0" />
                     <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                       {chartData.map((entry, index) => (
                         <Cell 
@@ -439,21 +427,21 @@ export default function Dashboard() {
                         position="top" 
                         fontSize={12} 
                         fontWeight={700}
-                        fill={theme === 'dark' ? '#94a3b8' : '#475569'}
+                        fill="#475569"
                       />
                     </Bar>
-                    <XAxis dataKey="name" fontSize={11} tick={{ fill: theme === 'dark' ? '#94a3b8' : '#475569', fontWeight: 600 }} />
-                    <YAxis domain={[0, 10]} fontSize={11} tick={{ fill: theme === 'dark' ? '#94a3b8' : '#475569' }} />
+                    <XAxis dataKey="name" fontSize={11} tick={{ fill: '#475569', fontWeight: 600 }} />
+                    <YAxis domain={[0, 10]} fontSize={11} tick={{ fill: '#475569' }} />
                     <Tooltip 
-                      cursor={{ fill: theme === 'dark' ? '#334155' : '#f1f5f9' }} 
+                      cursor={{ fill: '#f1f5f9' }} 
                       formatter={(value: number) => [`${value.toFixed(1)} (${getScoreLabel(value)})`, 'Média']}
                       contentStyle={{ 
                         fontSize: '12px', 
                         borderRadius: '8px', 
                         border: 'none', 
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                        backgroundColor: theme === 'dark' ? '#1e293b' : '#fff',
-                        color: theme === 'dark' ? '#f1f5f9' : '#0f172a'
+                        backgroundColor: '#fff',
+                        color: '#0f172a'
                       }} 
                     />
                   </BarChart>
@@ -472,7 +460,7 @@ export default function Dashboard() {
                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={theme === 'dark' ? 0.1 : 0.05} stroke={theme === 'dark' ? '#94a3b8' : '#e2e8f0'} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.05} stroke="#e2e8f0" />
                     <Area 
                       type="monotone" 
                       dataKey="average" 
@@ -480,7 +468,7 @@ export default function Dashboard() {
                       strokeWidth={4} 
                       fillOpacity={1}
                       fill="url(#colorAvg)"
-                      dot={{ r: 5, fill: '#3b82f6', strokeWidth: 2, stroke: theme === 'dark' ? '#1e293b' : '#fff' }} 
+                      dot={{ r: 5, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} 
                     >
                       <LabelList 
                         dataKey="average" 
@@ -488,13 +476,13 @@ export default function Dashboard() {
                         offset={10}
                         fontSize={11} 
                         fontWeight={700}
-                        fill={theme === 'dark' ? '#94a3b8' : '#475569'}
+                        fill="#475569"
                       />
                     </Area>
                     <XAxis 
                       dataKey="month" 
                       fontSize={11} 
-                      tick={{ fill: theme === 'dark' ? '#94a3b8' : '#475569', fontWeight: 600 }}
+                      tick={{ fill: '#475569', fontWeight: 600 }}
                       interval={0}
                       padding={{ left: 15, right: 15 }}
                     />
@@ -504,8 +492,8 @@ export default function Dashboard() {
                       borderRadius: '8px', 
                       border: 'none', 
                       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      backgroundColor: theme === 'dark' ? '#1e293b' : '#fff',
-                      color: theme === 'dark' ? '#f1f5f9' : '#0f172a'
+                      backgroundColor: '#fff',
+                      color: '#0f172a'
                     }} />
                   </AreaChart>
                 </ResponsiveContainer>
