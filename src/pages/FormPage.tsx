@@ -5,12 +5,11 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, Send, Sun, Moon, AlertCircle, X } from 'lucide-react';
+import { ChevronLeft, Send, AlertCircle, X } from 'lucide-react';
 import { saveResponse } from '../lib/storage';
 import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { MUNICIPALITIES } from '../constants/municipalities';
-import { useTheme } from '../contexts/ThemeContext';
 
 const QUESTIONS = [
   {
@@ -51,16 +50,15 @@ const QUESTIONS = [
 ];
 
 // Pastel color generator for scores 0-10
-const getPastelColor = (score: number, isSelected: boolean, isDark: boolean) => {
+const getPastelColor = (score: number, isSelected: boolean) => {
   // HSL scale: Red (0) to Green (120)
   const hue = (score * 12);
-  const saturation = isSelected ? (isDark ? 50 : 70) : (isDark ? 30 : 40);
-  const lightness = isSelected ? (isDark ? 30 : 80) : (isDark ? 15 : 95);
+  const saturation = isSelected ? 70 : 40;
+  const lightness = isSelected ? 80 : 95;
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 };
 
 export default function FormPage() {
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     municipality: '',
@@ -310,7 +308,7 @@ export default function FormPage() {
                           type="button"
                           onClick={() => updateField(q.id, num)}
                           style={{ 
-                            backgroundColor: getPastelColor(num, isSelected, theme === 'dark'),
+                            backgroundColor: getPastelColor(num, isSelected),
                             borderColor: isSelected ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.05)'
                           }}
                           className={cn(
