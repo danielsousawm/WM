@@ -171,9 +171,9 @@ export const calculateStats = (responses: SurveyResponse[], allResponses: Survey
     overallSatisfaction: Number((totals.overallSatisfaction / count).toFixed(1)),
   };
 
-  // High Satisfaction: Avg >= 8
-  const highSatisfactionCount = responses.filter(r => r.average >= 8).length;
-  const highSatisfactionPercent = Number(((highSatisfactionCount / count) * 100).toFixed(0));
+  // Satisfação Alta: Média >= 8.0
+  const highSatisfactionCount = responses.filter(r => Number(r.average) >= 8).length;
+  const highSatisfactionPercent = count > 0 ? Math.round((highSatisfactionCount / count) * 100) : 0;
 
   // Worst Criterion
   const criteriaLabels: Record<string, string> = {
