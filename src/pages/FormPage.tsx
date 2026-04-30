@@ -58,35 +58,68 @@ const getPastelColor = (score: number, isSelected: boolean) => {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 };
 
-export default function FormPage() {
+interface FormPageProps {
+  sector?: string;
+}
+
+export default function FormPage({ sector = 'GERAL' }: FormPageProps) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     municipality: '',
     clientName: '',
     clientPhone: '',
-    technicalQuality: 0,
-    resolutivity: 0,
-    deadlineCompliance: 0,
-    communication: 0,
-    overallSatisfaction: 0,
+    sector: sector,
+    technicalQuality: -1,
+    resolutivity: -1,
+    deadlineCompliance: -1,
+    communication: -1,
+    overallSatisfaction: -1,
     suggestions: ''
   });
+
+  // Sync sector prop to state if it changes
+  React.useEffect(() => {
+    setFormData(prev => ({ ...prev, sector }));
+  }, [sector]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showModalError, setShowModalError] = useState(false);
+  const [modalErrorMessage, setModalErrorMessage] = useState('');
 
-  const isMunicipalitySelected = MUNICIPALITIES.includes(formData.municipality.trim());
+  // Case insensitive check for municipality
+  const isMunicipalitySelected = React.useMemo(() => {
+    return MUNICIPALITIES.some(m => m.toLowerCase() === formData.municipality.trim().toLowerCase());
+  }, [formData.municipality]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
-    if (!formData.municipality.trim()) {
-      newErrors.municipality = 'Selecione um município primeiro';
-    } else if (!isMunicipalitySelected) {
+    if (!formData.municipality.trim() || !isMunicipalitySelected) {
+      setErrors({ municipality: 'Selecione um município primeiro' });
+      setModalErrorMessage('Por favor, selecione um município válido da lista antes de prosseguir com a avaliação.');
       setShowModalError(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Validate that all scores are selected
+    const missingQuestions = QUESTIONS.filter(q => (formData as any)[q.id] === -1);
+    if (missingQuestions.length > 0) {
+      setErrors(prev => ({
+        ...prev,
+        ...missingQuestions.reduce((acc, q) => ({ ...acc, [q.id]: 'Campo obrigatório' }), {})
+      }));
+      setModalErrorMessage(`Por favor, preencha todas as avaliações. Está pendente: ${missingQuestions[0].label}`);
+      setShowModalError(true);
+      
+      // Scroll to the first missing question
+      const element = document.getElementById(`question-${missingQuestions[0].id}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -96,6 +129,7 @@ export default function FormPage() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     
@@ -117,11 +151,12 @@ export default function FormPage() {
       municipality: '',
       clientName: '',
       clientPhone: '',
-      technicalQuality: 0,
-      resolutivity: 0,
-      deadlineCompliance: 0,
-      communication: 0,
-      overallSatisfaction: 0,
+      sector: sector,
+      technicalQuality: -1,
+      resolutivity: -1,
+      deadlineCompliance: -1,
+      communication: -1,
+      overallSatisfaction: -1,
       suggestions: ''
     });
     setErrors({});
@@ -212,9 +247,12 @@ export default function FormPage() {
       <main className="flex-1 p-5 overflow-y-auto bg-bg/50">
         <div className="max-w-4xl mx-auto space-y-6">
           
-          <div className="card !p-6">
+          <div id="municipality-section" className="card !p-6">
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-2 mb-4 border-b border-border pb-4">
               <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2 py-0.5 bg-accent/10 text-accent text-[10px] font-black rounded uppercase tracking-widest border border-accent/20">Setor {sector}</span>
+                </div>
                 <h2 className="text-[26px] font-bold text-primary">Pesquisa de Satisfação</h2>
                 <p className="text-base text-text-muted uppercase tracking-wider font-semibold">Avaliação de Desempenho e Qualidade de Atendimento</p>
               </div>
@@ -285,14 +323,28 @@ export default function FormPage() {
             {QUESTIONS.map((q) => (
               <motion.div 
                 key={q.id} 
+                id={`question-${q.id}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="card !p-6 space-y-4"
+                className={cn(
+                  "card !p-6 space-y-4 transition-all duration-300",
+                  errors[q.id] ? "ring-2 ring-danger shadow-lg shadow-danger/5" : ""
+                )}
               >
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-7 bg-accent rounded-full"></span>
-                    <h3 className="font-bold text-[22px] text-primary">{q.label}</h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "w-2 h-7 rounded-full transition-colors",
+                        errors[q.id] ? "bg-danger" : "bg-accent"
+                      )}></span>
+                      <h3 className="font-bold text-[22px] text-primary">{q.label}</h3>
+                    </div>
+                    {errors[q.id] && (
+                      <span className="text-danger flex items-center gap-1.5 text-sm font-bold bg-danger/5 px-3 py-1 rounded-full border border-danger/20">
+                        <AlertCircle size={14} /> Seleção obrigatória
+                      </span>
+                    )}
                   </div>
                   <p className="text-[20px] text-text-main font-medium pl-4 italic leading-tight">{q.question}</p>
                   <p className="text-[16px] text-text-muted pl-4 leading-relaxed">{q.context}</p>
@@ -323,10 +375,18 @@ export default function FormPage() {
                       );
                     })}
                   </div>
-                  <div className="flex justify-between items-center bg-bg p-3.5 rounded-xl border border-border">
+                  <div className={cn(
+                    "flex justify-between items-center p-3.5 rounded-xl border transition-colors",
+                    (formData as any)[q.id] === -1 ? "bg-slate-50 border-slate-200" : "bg-bg border-border"
+                  )}>
                     <p className="text-[15px] text-text-muted font-bold uppercase tracking-wider">{q.help}</p>
-                    <span className="text-[15px] font-black text-primary bg-card-bg px-3 py-1 rounded-lg shadow-sm border border-border min-w-[70px] text-center">
-                      VOTO: {formData[q.id as keyof typeof formData]}
+                    <span className={cn(
+                      "text-[15px] font-black px-3 py-1 rounded-lg shadow-sm border min-w-[70px] text-center transition-all",
+                      (formData as any)[q.id] === -1 
+                        ? "text-slate-400 bg-slate-100 border-slate-200" 
+                        : "text-primary bg-card-bg border-border"
+                    )}>
+                      {(formData as any)[q.id] === -1 ? 'PENDENTE' : `VOTO: ${(formData as any)[q.id]}`}
                     </span>
                   </div>
                 </div>
@@ -380,27 +440,27 @@ export default function FormPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-card-bg w-full max-w-sm rounded-2xl shadow-2xl border border-border overflow-hidden"
+            className="bg-card-bg w-full max-w-sm rounded-[24px] shadow-2xl border border-border overflow-hidden"
           >
-            <div className="p-6 text-center space-y-4">
-              <div className="w-16 h-16 bg-danger/10 text-danger rounded-full flex items-center justify-center mx-auto">
-                <AlertCircle size={32} />
+            <div className="p-8 text-center space-y-5">
+              <div className="w-16 h-16 bg-danger/10 text-danger rounded-full flex items-center justify-center mx-auto mb-2">
+                <AlertCircle size={36} strokeWidth={2.5} />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold text-primary">Atenção</h3>
-                <p className="text-sm text-text-main leading-relaxed">
-                  Por favor, selecione um município válido da lista antes de prosseguir com a avaliação.
+              <div className="space-y-3">
+                <h3 className="text-2xl font-black text-primary">Atenção</h3>
+                <p className="text-base text-text-main font-medium leading-relaxed">
+                  {modalErrorMessage}
                 </p>
               </div>
               <button 
                 onClick={() => setShowModalError(false)}
-                className="w-full py-3 bg-danger text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-danger/20"
+                className="w-full py-4 bg-danger text-white rounded-xl font-bold text-lg hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-danger/20 mt-4"
               >
                 Entendi
               </button>
             </div>
-            <div className="bg-bg/50 px-6 py-3 flex justify-center border-t border-border">
-              <p className="text-[11px] text-text-muted uppercase tracking-widest font-bold">WM Saúde • Validação</p>
+            <div className="bg-bg/80 px-6 py-4 flex justify-center border-t border-border/50">
+              <p className="text-[12px] text-text-muted uppercase tracking-[0.2em] font-black italic">WM Saúde • Validação</p>
             </div>
           </motion.div>
         </div>

@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [filterMonth, setFilterMonth] = useState<string>('');
   const [filterYear, setFilterYear] = useState<string>('');
   const [filterMunicipality, setFilterMunicipality] = useState<string>('');
+  const [filterSector, setFilterSector] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   useEffect(() => {
@@ -62,7 +63,8 @@ export default function Dashboard() {
       const matchMonth = filterMonth === '' || (date.getMonth() + 1).toString() === filterMonth;
       const matchYear = filterYear === '' || date.getFullYear().toString() === filterYear;
       const matchMunicipality = filterMunicipality === '' || r.municipality === filterMunicipality;
-      return matchMonth && matchYear && matchMunicipality;
+      const matchSector = filterSector === '' || r.sector === filterSector;
+      return matchMonth && matchYear && matchMunicipality && matchSector;
     });
 
     if (sortConfig !== null) {
@@ -81,7 +83,7 @@ export default function Dashboard() {
     }
 
     return result;
-  }, [allResponses, filterMonth, filterYear, filterMunicipality, sortConfig]);
+  }, [allResponses, filterMonth, filterYear, filterMunicipality, filterSector, sortConfig]);
 
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -96,7 +98,11 @@ export default function Dashboard() {
     return sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />;
   };
 
-  const stats = useMemo(() => calculateStats(filteredResponses, allResponses), [filteredResponses, allResponses]);
+  const baseResponsesForStats = useMemo(() => {
+    return allResponses.filter(r => filterSector === '' || r.sector === filterSector);
+  }, [allResponses, filterSector]);
+
+  const stats = useMemo(() => calculateStats(filteredResponses, baseResponsesForStats), [filteredResponses, baseResponsesForStats]);
 
   const getScoreColor = (value: number) => {
     if (value >= 9) return '#10b981'; // Excelente
@@ -129,10 +135,12 @@ export default function Dashboard() {
       monthLabels.unshift('Jan');
     }
     
-    // We want evolution to respect municipality filter if set
-    const baseData = filterMunicipality 
-      ? allResponses.filter(r => r.municipality === filterMunicipality)
-      : allResponses;
+    // We want evolution to respect municipality and sector filter if set
+    const baseData = allResponses.filter(r => {
+      const matchMunicipality = filterMunicipality === '' || r.municipality === filterMunicipality;
+      const matchSector = filterSector === '' || r.sector === filterSector;
+      return matchMunicipality && matchSector;
+    });
 
     return monthLabels.map((label, index) => {
       const monthIndex = index; 
@@ -147,7 +155,7 @@ export default function Dashboard() {
 
       return { month: label, average };
     });
-  }, [allResponses, filterYear, filterMunicipality]);
+  }, [allResponses, filterYear, filterMunicipality, filterSector]);
 
   const years = useMemo(() => {
     const yrs = Array.from(new Set(allResponses.map(r => new Date(r.date).getFullYear()))).sort((a: number, b: number) => b - a);
@@ -218,7 +226,6 @@ export default function Dashboard() {
             </button>
           )}
           
-          <Link to="/form" className="text-primary font-bold hover:underline">Ir para Formulário</Link>
         </motion.div>
       </div>
     );
@@ -242,10 +249,22 @@ export default function Dashboard() {
             <div className="h-6 w-[1px] bg-slate-800 hidden lg:block"></div>
             <nav className="flex gap-2">
               <Link 
-                to="/form" 
-                className="px-4 py-2 bg-[#3b82f6] text-white rounded-lg font-bold text-sm hover:bg-[#2563eb] transition-all shadow-sm flex items-center gap-2"
+                to="/avaliacao-nutec" 
+                className="px-3 py-2 bg-emerald-600 text-white rounded-lg font-bold text-[11px] uppercase tracking-wider hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-2"
               >
-                Novo Formulário
+                NUTEC
+              </Link>
+              <Link 
+                to="/avaliacao-mac" 
+                className="px-3 py-2 bg-blue-600 text-white rounded-lg font-bold text-[11px] uppercase tracking-wider hover:bg-blue-700 transition-all shadow-sm flex items-center gap-2"
+              >
+                MAC
+              </Link>
+              <Link 
+                to="/avaliacao-aps" 
+                className="px-3 py-2 bg-purple-600 text-white rounded-lg font-bold text-[11px] uppercase tracking-wider hover:bg-purple-700 transition-all shadow-sm flex items-center gap-2"
+              >
+                APS
               </Link>
             </nav>
           </div>
@@ -320,12 +339,28 @@ export default function Dashboard() {
             </select>
           </div>
 
-          {(filterMonth || filterYear || filterMunicipality) && (
+          <div className="relative group">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={14} />
+            <select 
+              value={filterSector}
+              onChange={(e) => setFilterSector(e.target.value)}
+              className="pl-9 pr-8 py-2 bg-card-bg border border-border rounded-xl text-sm font-bold text-text-main outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all appearance-none cursor-pointer hover:border-border/80 min-w-[140px]"
+            >
+              <option value="">Setor: Todos</option>
+              <option value="NUTEC">NUTEC</option>
+              <option value="MAC">MAC</option>
+              <option value="APS">APS</option>
+              <option value="GERAL">GERAL</option>
+            </select>
+          </div>
+
+          {(filterMonth || filterYear || filterMunicipality || filterSector) && (
             <button 
               onClick={() => {
                 setFilterMonth('');
                 setFilterYear('');
                 setFilterMunicipality('');
+                setFilterSector('');
               }}
               className="flex items-center gap-1.5 px-4 py-2 text-danger hover:bg-danger/10 rounded-xl text-sm font-bold transition-all border border-transparent hover:border-danger/20"
             >
@@ -413,7 +448,7 @@ export default function Dashboard() {
               <div className="stat-label pb-4 border-b border-border">Médias por Critério</div>
               <div className="flex-1 mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.05} stroke="#e2e8f0" />
                     <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                       {chartData.map((entry, index) => (
@@ -428,10 +463,11 @@ export default function Dashboard() {
                         fontSize={12} 
                         fontWeight={700}
                         fill="#475569"
+                        formatter={(val: number) => val.toFixed(1)}
                       />
                     </Bar>
                     <XAxis dataKey="name" fontSize={11} tick={{ fill: '#475569', fontWeight: 600 }} />
-                    <YAxis domain={[0, 10]} fontSize={11} tick={{ fill: '#475569' }} />
+                    <YAxis domain={[0, 11]} fontSize={11} tick={{ fill: '#475569' }} />
                     <Tooltip 
                       cursor={{ fill: '#f1f5f9' }} 
                       formatter={(value: number) => [`${value.toFixed(1)} (${getScoreLabel(value)})`, 'Média']}
@@ -453,7 +489,7 @@ export default function Dashboard() {
               <div className="stat-label pb-4 border-b border-border">Evolução Mensal</div>
               <div className="flex-1 mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={evolutionData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                  <AreaChart data={evolutionData} margin={{ top: 20, right: 30, left: 10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -473,7 +509,7 @@ export default function Dashboard() {
                       <LabelList 
                         dataKey="average" 
                         position="top" 
-                        offset={10}
+                        offset={12}
                         fontSize={11} 
                         fontWeight={700}
                         fill="#475569"
@@ -486,7 +522,7 @@ export default function Dashboard() {
                       interval={0}
                       padding={{ left: 15, right: 15 }}
                     />
-                    <YAxis domain={[0, 10]} hide />
+                    <YAxis domain={[0, 11]} hide />
                     <Tooltip contentStyle={{ 
                       fontSize: '12px', 
                       borderRadius: '8px', 
@@ -526,6 +562,14 @@ export default function Dashboard() {
                     >
                       <div className="flex items-center gap-1.5">
                         Nome {getSortIcon('clientName')}
+                      </div>
+                    </th>
+                    <th 
+                      onClick={() => requestSort('sector')}
+                      className="text-left px-2 py-4 text-text-muted font-bold border-b border-border text-[14px] uppercase tracking-wider cursor-pointer hover:bg-bg/80 transition-colors"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        Setor {getSortIcon('sector')}
                       </div>
                     </th>
                     <th 
@@ -614,6 +658,17 @@ export default function Dashboard() {
                       >
                         <td className="px-2 py-3.5 font-bold text-primary whitespace-nowrap">{r.municipality}</td>
                         <td className="px-2 py-3.5 text-text-muted whitespace-nowrap">{r.clientName || '-'}</td>
+                        <td className="px-2 py-3.5 whitespace-nowrap">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border",
+                            r.sector === 'NUTEC' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                            r.sector === 'MAC' ? "bg-blue-50 text-blue-600 border-blue-100" :
+                            r.sector === 'APS' ? "bg-purple-50 text-purple-600 border-purple-100" :
+                            "bg-slate-50 text-slate-600 border-slate-100"
+                          )}>
+                            {r.sector}
+                          </span>
+                        </td>
                         <td className="px-2 py-3.5 text-text-muted whitespace-nowrap">{r.clientPhone || '-'}</td>
                         <td className="px-2 py-3.5 text-text-main font-medium">{r.technicalQuality}</td>
                         <td className="px-2 py-3.5 text-text-main font-medium">{r.resolutivity}</td>
