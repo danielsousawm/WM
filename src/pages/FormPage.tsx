@@ -198,14 +198,7 @@ export default function FormPage({ sector = 'GERAL' }: FormPageProps) {
               </p>
             </div>
 
-            <div className="pt-6">
-              <Link 
-                to="/" 
-                className="w-full py-4 bg-primary text-card-bg rounded-xl font-bold text-sm shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
-              >
-                Fechar
-              </Link>
-            </div>
+            <div className="pt-2"></div>
             
             <p className="text-[12px] text-text-muted uppercase tracking-[0.1em] font-bold opacity-70 pt-4">
               WM Saúde - Gestão e Tecnologia
