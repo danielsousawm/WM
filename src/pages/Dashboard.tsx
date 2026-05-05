@@ -350,7 +350,6 @@ export default function Dashboard() {
               <option value="NUTEC">NUTEC</option>
               <option value="MAC">MAC</option>
               <option value="APS">APS</option>
-              <option value="GERAL">GERAL</option>
             </select>
           </div>
 
