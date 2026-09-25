@@ -16,7 +16,9 @@ service cloud.firestore {
              (request.auth.token.email == "danielsousawm@gmail.com" || 
               request.auth.token.email == "wellington.wmsaude@gmail.com" ||
               request.auth.token.email == "nutecpiwmsaude@gmail.com" ||
-              request.auth.token.email == "admwmpi@gmail.com");
+              request.auth.token.email == "admwmpi@gmail.com" ||
+              request.auth.token.email == "cibele.rodrigues.santos.adv@gmail.com" ||
+              request.auth.token.email == "Cibele.rodrigues.santos.adv@gmail.com");
     }
 
     function isValidId(id) {
